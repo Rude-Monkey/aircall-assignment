@@ -32,6 +32,7 @@ exports.lambdaHandler = async (event, context) => {
             const { body } = await parser.parse(event);
             s3_key = body.s3Key;
             img_buffer = body.files[0].file;
+            console.log("received image: ", img_buffer);
         } else {
             throw Error("Method not supported");
         }
@@ -77,6 +78,7 @@ exports.lambdaHandler = async (event, context) => {
 async function resize_image(img_buffer,size) {
     
     try {
+        console.log("supported formats: ", sharp.format)
         var img_corp_buffer = await sharp(img_buffer)
             .resize(size, size, {
                 withoutEnlargement: true
