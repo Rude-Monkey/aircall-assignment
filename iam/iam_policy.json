@@ -2,10 +2,16 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Stmt1588948649431",
+      "Sid": "Stmt1589036465235",
       "Action": [
         "s3:PutObject"
       ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Sid": "Stmt1589036540554",
+      "Action": "logs:*",
       "Effect": "Allow",
       "Resource": "*"
     }
