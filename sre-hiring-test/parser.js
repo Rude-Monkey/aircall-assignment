@@ -3,11 +3,12 @@
   const Busboy = require('busboy');
 
   const getContentType = (event) => {
-      let contentType = event.headers['content-type']
-      if (!contentType){
-        return event.headers['Content-Type'];
-      }
-      return contentType;
+    let contentType = event.headers['content-type']
+    console.log("content type: ", contentType)
+    if (!contentType){
+      return event.headers['Content-Type'];
+    }
+    return contentType;
   };
 
   const parser = (event) => new Promise((resolve, reject) => {
@@ -23,6 +24,7 @@
     
       busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
         file.on('data', data => {
+          console.log("filename: ", filename, "content type: ", mimetype, "file: ", data)
           result.files.push({
             file: data,
             fileName: filename,
@@ -32,6 +34,7 @@
       });
     
       busboy.on('field', (fieldname, value) => {
+        console.log("detected field: ", fieldname)
         try {
           result[fieldname] = JSON.parse(value);
         } catch (err) {

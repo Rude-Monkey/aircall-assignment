@@ -19,7 +19,7 @@ let response;
  * 
  */
 exports.lambdaHandler = async (event, context) => {
-
+    console.log('Received event:', JSON.stringify(event, null, 2));
     const S3_BUCKET = process.env.S3_BUCKET;
 
     const image_max_size = 456;
@@ -32,7 +32,7 @@ exports.lambdaHandler = async (event, context) => {
             const { body } = await parser.parse(event);
             s3_key = body.s3Key;
             img_buffer = body.files[0].file;
-            console.log("received image: ", img_buffer);
+            console.log("found key: ", s3_key, "received image: ", img_buffer);
         } else {
             throw Error("Method not supported");
         }
@@ -42,8 +42,12 @@ exports.lambdaHandler = async (event, context) => {
             let s3_key_image;
             if (image_size !== image_max_size){
                 s3_key_image = s3_key + '_' + image_size;
+                console.log("new key: ", s3_key_image)
+                console.log("but key: ", s3_key + '_' + image_size)
             } else {
                 s3_key_image = s3_key;
+                console.log("new key: ", s3_key_image)
+                console.log("but key: ", s3_key)
             }
             await send_image(crop_img_buffer,S3_BUCKET,s3_key_image);
         })

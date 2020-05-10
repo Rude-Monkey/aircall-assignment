@@ -1,5 +1,7 @@
 resource "aws_api_gateway_rest_api" "api" {
   name = "resize_api"
+
+  binary_media_types = ["*/*"]
 }
 
 resource "aws_api_gateway_deployment" "api_deployment" {

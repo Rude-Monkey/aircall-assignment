@@ -8,6 +8,7 @@ resource "aws_lambda_function" "resize_lambda" {
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
   timeout = 30
+  memory_size = 256
 
   # The filebase64sha256() function is available in Terraform 0.11.12 and later
   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
@@ -18,7 +19,7 @@ resource "aws_lambda_function" "resize_lambda" {
 
   environment {
     variables = {
-      S3_BUCKET = aws_s3_bucket.my_bucket.bucket
+      S3_BUCKET = aws_s3_bucket.my_bucket.bucket,
     }
   }
 }

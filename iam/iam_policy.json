@@ -4,7 +4,7 @@
     {
       "Sid": "Stmt1589036465235",
       "Action": [
-        "s3:PutObject"
+        "s3:*"
       ],
       "Effect": "Allow",
       "Resource": "*"
