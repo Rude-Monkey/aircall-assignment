@@ -13,9 +13,11 @@
     "sharp": "^0.25.2"
   },
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "mocha": "^7.1.2"
   },
   "scripts": {
-    "deploy": "serverless deploy"
+    "deploy": "serverless deploy",
+    "test": "mocha --reporter list"
   }
 }
