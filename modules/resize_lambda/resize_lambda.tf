@@ -1,5 +1,5 @@
 locals {
-    lambda_zip_file = "sre-hiring-test/resize.zip"
+    lambda_zip_file = "src/resize.zip"
 }
 
 resource "aws_lambda_function" "resize_lambda" {

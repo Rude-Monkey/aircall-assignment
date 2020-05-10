@@ -51,3 +51,37 @@ resource "aws_lambda_permission" "apigw_lambda" {
   # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
   source_arn = "${aws_api_gateway_rest_api.api.execution_arn}/*/*/*"
 }
+
+resource "aws_api_gateway_account" "resize_api_account" {
+  cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
+}
+
+resource "aws_iam_role" "cloudwatch" {
+  name = "api_gateway_cloudwatch_global"
+
+  assume_role_policy = file("${path.module}/iam/gw_assume_role_policy.json")
+}
+
+resource "aws_iam_role_policy" "cloudwatch" {
+  name = "default"
+  role = aws_iam_role.cloudwatch.id
+
+  policy = file("${path.module}/iam/gw_iam_policy.json")
+}
+
+resource "aws_api_gateway_method_settings" "general_settings" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  stage_name  = aws_api_gateway_deployment.api_deployment.stage_name
+  method_path = "*/*"
+
+  settings {
+    # Enable CloudWatch logging and metrics
+    metrics_enabled        = true
+    data_trace_enabled     = true
+    logging_level          = "INFO"
+
+    # Limit the rate of calls to prevent abuse and unwanted charges
+    throttling_rate_limit  = 100
+    throttling_burst_limit = 50
+  }
+}
