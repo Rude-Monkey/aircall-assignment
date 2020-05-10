@@ -23,6 +23,8 @@ This will allow us to deploy all the required resources on AWS. *FullAccess perm
 
 The goal here is to deploy a function to AWS Lambda and trigger that Lambda's execution when sending a POST request to an API (that will be created using AWS APIGateway). This function will take an image it is sent, manipulate it and store it to an AWS S3 Bucket.
 
+![diagram](./misc/aircall-assignment-diagram.png)
+
 This project contains: 
 - A Terraform file with a Terraform module containing the files required to create the required AWS resources (Lambda function and IAM role, S3 bucket and APIGateway REST API with IAM role and Lambda integration).
 - The JS app's source code and [documentation](./src/README.md) in the `src` directory.
