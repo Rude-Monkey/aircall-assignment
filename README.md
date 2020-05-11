@@ -75,3 +75,62 @@ For a given file (say `file.jpg`), the lambda function will store 3 files in the
 - `file.jpg_200`
 - `file.jpg_75`
 
+## Implementation choices
+
+This section discusses aspects of the [initial requirements](./misc/README.md) that led to implementation decisions.
+
+### S3 Bucket
+
+AWS S3 is the targeted storage backend for the service. As I wanted people to be able to access the images that would be stored on my S3 bucket, I put a `public-read` ACL on it. This probably wouldn't be enough for a production setup (I guess it actually depends on what these images are meant for), but it allowed me to make sure anyone could use a demo version of the service and access their images on the S3 bucket.
+
+### Using Lambdas
+
+AWS Lambda provides its users with a fairly easy way to deploy individual functions without worrying (too much) about the underlying infrastructure. The intern that wrote the code clearly designed it with Lambda as a deployment target by exporting a handler and parsing incoming events.  
+
+In order to allow a Lambda to store objects on S3, an IAM role with a policy giving access to `s3:PutObject` and `s3:PutObjectAcl` was added.
+
+### AWS API Gateway
+
+The API Gateway provides an easy way to create REST APIs. It is easy to add new paths and methods to an API using API resources and the user can also easily create various integrations. The `AWS_PROXY` integration type allows us to trigger a Lambda function and proxy the request body to it.
+
+### Infrastructure as code
+
+The requirements stated that the project owner wanted a "cool way" to deploy the project using an infrastructure as code tool.
+
+I chose Terraform over tools like Ansible because of its declarative approach (instead of Ansible's procedural approach). Also, I found the AWS provider integration to be fairly simple to use.
+
+To not "pollute" the project's root directory, I put the .tf files in a module called resize_lambda that contains all the files to: 
+- configure the API Gateway to trigger a Lambda function whenever it receives a POST request on its `/image` path.
+- configure a Lambda function to run the app's code, giving it access to a S3 bucket.
+- create the S3 bucket the Lambda function will send the modified pictures to and make it publicly readable.
+
+### Logs & Metrics
+
+Logs were enabled for both the app running in Lambda and the API Gateway by giving them permissions to access `CloudWatch Logs`. Logs for these services can therefore be found in the CloudWatch log journals. This is much simpler to set up than setting up a complete log collection and storage stack like ELK. Plus, I should have no problem staying under the AWS free tier limits.
+
+As far as metrics go, giving the Lambda function access to CloudWatch enables us to access information like the number of invocations over time, or the Lambda's success rate. This allowed to set up basic metrics without modifying a single line of the app's code. Solutions like Prometheus could also be used, but would require to instrument the JavaScript code using a [client library](https://github.com/siimon/prom-client).
+
+### Tracing
+
+No tracing was enabled for this project. Tracing could be enabled by instrumenting the code so that it used the OpenTracing client library. We would then need to connect it to a tracing backend. Multiple solutions exist. [Jaeger](https://www.jaegertracing.io/) probably is the most popular open-source (and free-to-use) solution to do so.  
+
+With the sole context of this project, tracing would be done by creating a span whenever the handler receives an event and propagating its context with every function call... but I guess in the case other services interact with our Lambda, extracting the SpanContect from incoming requests would probably be more useful. I found a resource that would probably be useful on Lightstep's [tech blog](https://lightstep.com/blog/monitoring-serverless-functions-using-opentracing/). (Lightstep is a commercial product that can be used as a tracing backend alternative to Jaeger)
+
+### Authentication
+
+No authentication was added to the API Gateway. I guess that in the case other services hosted on AWS were the only services to interact with the service, restricting access to the API to given IAM roles would be a valid option.
+
+### Builder image
+
+In order to run tests and package the application into a zip file, we needed a linux-x64 system with npm and zip installed.
+
+I decided to go for a Docker image which could therefore be used as part as a CI/CD process (by making it the image used by job runners for example).
+I could either go with an Ubuntu/Debian/... image that had zip preinstalled and add npm, or go with a node image (which came with npm) and install zip. I didn't put too much thinking into it, but if performance is very important we would have to make a decision based on the volume deltas between the two base images and between both zip and npm packages.
+
+Sadly, because `Sharp` is a linux-x64 binary, we couldn't use an alpine version of the node base image.
+
+The image was purposely left without any `ENTRYPOINT` or `CMD` so that we could easily use it for both testing and packaging stages.
+
+### Testing
+
+Testing wasn't (explicitely) mentioned in the requirements, but I figured the project's maintainer would eventually feel more comfortable having tests to ensure code quality. I added Mocha to the JS project so that we could write and run tests using `make test`. No tests were actually added though and that would have to be added to the TODO list.
