@@ -65,9 +65,9 @@ curl --location --request POST '<api_url>' --form 'file=@file.jpg' --form 's3Key
 
 The app will store the modified images to an S3 bucket. This project deploys an S3 bucket with a `public-read` ACL, that allows anyone to get the files stored on it. You will therefore need to make sure the bucket's name is unique for it to be correctly created.  
 
-The image files can be accessed using the `bucket_url` provided by the Terraform output: 
+The image files can be accessed using the `bucket_url` provided by the Terraform output using a browser or by running: 
 ```
-curl <bucket_url>/file.jpg
+curl <bucket_url>/file.jpg | file.jpg
 ```
 
 For a given file (say `file.jpg`), the lambda function will store 3 files in the S3 bucket: 
